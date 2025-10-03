@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from tutoring_system import MultiAgentTutoringSystem, SystemConfig
 from models import Lesson, UserProgress, LearningPath
+from dynamic_lesson_generator import DynamicLessonGenerator
 
 class DynamicLearningPlanner:
     """Dynamic learning planner that creates and adapts plans based on user requests"""
@@ -28,6 +29,7 @@ class DynamicLearningPlanner:
         )
         
         self.system = MultiAgentTutoringSystem(config)
+        self.lesson_generator = DynamicLessonGenerator(self.system.llm_service)
         self.active_plans = {}  # user_id -> current_plan
         self.user_requests = {}  # user_id -> request_history
         self.progress_tracking = {}  # user_id -> progress_data
@@ -184,30 +186,25 @@ class DynamicLearningPlanner:
         }
     
     async def _generate_curriculum(self, requirements: Dict[str, Any]) -> List[Lesson]:
-        """Generate curriculum based on requirements"""
+        """Generate curriculum based on requirements using dynamic LLM generation"""
         
         subject = requirements["subject"]
         level = requirements["current_level"]
         timeline = requirements["timeline"]
         
-        # Calculate number of lessons based on timeline
+        # Calculate number of weeks based on timeline
         weeks = self._extract_weeks_from_timeline(timeline)
-        lessons_per_week = 3 if level == "beginner" else 4 if level == "intermediate" else 5
-        total_lessons = weeks * lessons_per_week
         
-        curriculum = []
+        print(f"🤖 Generating dynamic curriculum for {subject} ({level}) - {weeks} weeks")
         
-        if subject == "Python":
-            curriculum = self._create_python_curriculum(level, total_lessons)
-        elif subject == "JavaScript":
-            curriculum = self._create_javascript_curriculum(level, total_lessons)
-        elif subject == "Machine Learning":
-            curriculum = self._create_ml_curriculum(level, total_lessons)
-        elif subject == "Web Development":
-            curriculum = self._create_webdev_curriculum(level, total_lessons)
-        else:
-            curriculum = self._create_generic_curriculum(subject, level, total_lessons)
+        # Use dynamic lesson generator to create curriculum
+        curriculum = await self.lesson_generator.generate_curriculum(
+            subject=subject,
+            level=level,
+            duration_weeks=weeks
+        )
         
+        print(f"✅ Generated {len(curriculum)} dynamic lessons")
         return curriculum
     
     def _extract_weeks_from_timeline(self, timeline: str) -> int:
@@ -223,96 +220,7 @@ class DynamicLearningPlanner:
         else:
             return 12  # Default
     
-    def _create_python_curriculum(self, level: str, total_lessons: int) -> List[Lesson]:
-        """Create Python curriculum based on level"""
-        
-        if level == "beginner":
-            topics = [
-                ("Python Fundamentals", "Introduction to Python syntax, variables, data types"),
-                ("Control Structures", "If statements, loops, conditional logic"),
-                ("Functions and Modules", "Creating functions, importing modules"),
-                ("Data Structures", "Lists, dictionaries, tuples, sets"),
-                ("File Handling", "Reading/writing files, error handling"),
-                ("Object-Oriented Programming", "Classes, objects, inheritance"),
-                ("Advanced Data Processing", "List comprehensions, generators"),
-                ("Web Development with Flask", "Building web applications"),
-                ("Data Science Basics", "NumPy, Pandas introduction"),
-                ("Project Development", "Building real-world projects")
-            ]
-        elif level == "intermediate":
-            topics = [
-                ("Advanced Python Features", "Decorators, context managers, generators"),
-                ("Design Patterns", "Common design patterns in Python"),
-                ("Testing and Debugging", "Unit testing, debugging techniques"),
-                ("Database Integration", "SQLAlchemy, database operations"),
-                ("API Development", "REST APIs with FastAPI/Flask"),
-                ("Async Programming", "Async/await, asyncio"),
-                ("Data Analysis", "Pandas, data visualization"),
-                ("Machine Learning Basics", "Scikit-learn, model training"),
-                ("Web Scraping", "BeautifulSoup, requests"),
-                ("Deployment", "Docker, cloud deployment")
-            ]
-        else:  # advanced
-            topics = [
-                ("Advanced Algorithms", "Complex algorithms and data structures"),
-                ("Performance Optimization", "Profiling, optimization techniques"),
-                ("Concurrent Programming", "Threading, multiprocessing"),
-                ("Advanced ML", "Deep learning with TensorFlow/PyTorch"),
-                ("Microservices", "Distributed systems, microservices"),
-                ("Advanced Web Frameworks", "Django, advanced Flask"),
-                ("DevOps Integration", "CI/CD, automation"),
-                ("Advanced Data Science", "Statistical analysis, ML pipelines"),
-                ("System Design", "Scalable system architecture"),
-                ("Open Source Contribution", "Contributing to Python projects")
-            ]
-        
-        lessons = []
-        for i, (title, content) in enumerate(topics[:total_lessons]):
-            lesson = Lesson(
-                lesson_id=f"python_{level}_{i+1:03d}",
-                title=title,
-                content=content,
-                difficulty=level,
-                duration=45 + (i * 15),  # Increasing duration
-                learning_objectives=[f"Master {title.lower()}", f"Apply {title.lower()} in practice"],
-                prerequisites=[f"python_{level}_{i:03d}"] if i > 0 else []
-            )
-            lessons.append(lesson)
-        
-        return lessons
-    
-    def _create_javascript_curriculum(self, level: str, total_lessons: int) -> List[Lesson]:
-        """Create JavaScript curriculum"""
-        # Similar structure for JavaScript
-        return self._create_generic_curriculum("JavaScript", level, total_lessons)
-    
-    def _create_ml_curriculum(self, level: str, total_lessons: int) -> List[Lesson]:
-        """Create Machine Learning curriculum"""
-        # Similar structure for ML
-        return self._create_generic_curriculum("Machine Learning", level, total_lessons)
-    
-    def _create_webdev_curriculum(self, level: str, total_lessons: int) -> List[Lesson]:
-        """Create Web Development curriculum"""
-        # Similar structure for Web Development
-        return self._create_generic_curriculum("Web Development", level, total_lessons)
-    
-    def _create_generic_curriculum(self, subject: str, level: str, total_lessons: int) -> List[Lesson]:
-        """Create generic curriculum for any subject"""
-        
-        lessons = []
-        for i in range(total_lessons):
-            lesson = Lesson(
-                lesson_id=f"{subject.lower().replace(' ', '_')}_{level}_{i+1:03d}",
-                title=f"{subject} - Lesson {i+1}",
-                content=f"Comprehensive content for {subject} lesson {i+1}",
-                difficulty=level,
-                duration=45 + (i * 10),
-                learning_objectives=[f"Learn {subject} concepts", f"Apply {subject} skills"],
-                prerequisites=[f"{subject.lower().replace(' ', '_')}_{level}_{i:03d}"] if i > 0 else []
-            )
-            lessons.append(lesson)
-        
-        return lessons
+    # Note: Hardcoded curriculum methods removed - now using dynamic LLM generation
     
     async def track_progress(self, user_id: str, activity: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Track user progress and update learning plan"""
