@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Planner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 AI Learning Planner</h1>
+            <p>Create personalized learning plans and track your progress</p>
+        </header>
+
+        <main>
+            <!-- Learning Request Form -->
+            <section class="request-section">
+                <h2>📝 Create Your Learning Plan</h2>
+                <form id="learningRequestForm">
+                    <div class="form-group">
+                        <label for="userRequest">Describe what you want to learn:</label>
+                        <textarea 
+                            id="userRequest" 
+                            placeholder="e.g., I want to learn Python for 3 months with weekly tests"
+                            rows="3"
+                            required
+                        ></textarea>
+                    </div>
+                    <button type="submit" id="createPlanBtn">🚀 Create Learning Plan</button>
+                </form>
+            </section>
+
+            <!-- Learning Plan Display -->
+            <section class="plan-section" id="planSection" style="display: none;">
+                <h2>📋 Your Learning Plan</h2>
+                <div class="plan-info">
+                    <div class="plan-header">
+                        <h3 id="planTitle"></h3>
+                        <div class="plan-meta">
+                            <span id="planTimeline"></span>
+                            <span id="planLessons"></span>
+                        </div>
+                    </div>
+                    <div class="plan-goals">
+                        <h4>🎯 Goals:</h4>
+                        <ul id="planGoalsList"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress Tracking -->
+            <section class="progress-section" id="progressSection" style="display: none;">
+                <h2>📊 Learning Progress</h2>
+                <div class="progress-stats">
+                    <div class="stat-card">
+                        <h3>Lessons Completed</h3>
+                        <span id="lessonsCompleted">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Average Score</h3>
+                        <span id="averageScore">0%</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Time Spent</h3>
+                        <span id="timeSpent">0 min</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Current Week</h3>
+                        <span id="currentWeek">1</span>
+                    </div>
+                </div>
+
+                <div class="progress-chart">
+                    <h4>📈 Weekly Scores</h4>
+                    <div id="scoreChart" class="chart"></div>
+                </div>
+
+                <div class="recommendations">
+                    <h4>💡 Recommendations</h4>
+                    <ul id="recommendationsList"></ul>
+                </div>
+            </section>
+
+            <!-- Learning Session -->
+            <section class="session-section" id="sessionSection" style="display: none;">
+                <h2>📚 Learning Session</h2>
+                <div class="session-controls">
+                    <button id="startSessionBtn" class="btn-primary">🎯 Start Learning Session</button>
+                    <button id="takeTestBtn" class="btn-secondary" disabled>📝 Take Weekly Test</button>
+                    <button id="endSessionBtn" class="btn-danger" disabled>🏁 End Session</button>
+                </div>
+                <div class="session-status">
+                    <p id="sessionStatus">Ready to start learning</p>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="actions-section">
+                <h2>⚡ Quick Actions</h2>
+                <div class="quick-actions">
+                    <button class="action-btn" onclick="showExample('python')">🐍 Python Learning</button>
+                    <button class="action-btn" onclick="showExample('javascript')">🟨 JavaScript Learning</button>
+                    <button class="action-btn" onclick="showExample('ml')">🤖 Machine Learning</button>
+                    <button class="action-btn" onclick="showExample('webdev')">🌐 Web Development</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Creating your learning plan...</p>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

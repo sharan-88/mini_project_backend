@@ -1,0 +1,377 @@
+"""
+Demo Script for Multi-Agent AI Tutoring System
+==============================================
+
+This script demonstrates the key features and capabilities of the
+adaptive learning system.
+"""
+
+import asyncio
+import json
+from datetime import datetime
+from tutoring_system import MultiAgentTutoringSystem, SystemConfig
+from models import Lesson, UserProfile
+
+async def demo_basic_functionality():
+    """Demonstrate basic system functionality"""
+    
+    print("🚀 Multi-Agent AI Tutoring System Demo")
+    print("=" * 50)
+    
+    # Initialize system
+    config = SystemConfig(
+        llm_provider="google",
+        llm_api_key="demo-key",  # In production, use real API key
+        llm_model="gemini-pro",
+        enable_analytics=True,
+        enable_gap_analysis=True,
+        enable_learning_curves=True,
+        enable_mdp_recommendations=True
+    )
+    
+    system = MultiAgentTutoringSystem(config)
+    print("✅ System initialized successfully")
+    
+    # Create sample lesson
+    lesson = Lesson(
+        lesson_id="python_basics_001",
+        title="Introduction to Python Programming",
+        content="""
+        Python is a high-level, interpreted programming language known for its simplicity and readability.
+        
+        Key Features:
+        - Simple syntax
+        - Dynamic typing
+        - Extensive libraries
+        - Cross-platform compatibility
+        
+        Python is widely used in:
+        - Web development
+        - Data science
+        - Machine learning
+        - Automation
+        """,
+        difficulty="beginner",
+        duration=45,
+        learning_objectives=[
+            "Understand Python syntax basics",
+            "Write simple Python programs",
+            "Use Python data types",
+            "Implement control structures"
+        ],
+        prerequisites=["Basic computer skills", "Understanding of programming concepts"]
+    )
+    
+    system.lessons[lesson.lesson_id] = lesson
+    print(f"✅ Created lesson: {lesson.title}")
+    
+    # Start learning session
+    user_id = "demo_user_001"
+    session_id = await system.start_learning_session(user_id, lesson.lesson_id)
+    print(f"✅ Started learning session: {session_id}")
+    
+    # Demonstrate concept explanation
+    print("\n🧠 Knowledge Agent - Concept Explanation")
+    print("-" * 40)
+    
+    explanation = await system.process_user_interaction(
+        session_id,
+        "concept_explanation_requested",
+        {
+            "concept": "Python variables",
+            "difficulty": "beginner",
+            "learning_style": "visual"
+        }
+    )
+    
+    print("📖 Explanation provided:")
+    print(explanation["explanation"][:200] + "...")
+    print(f"🎯 Confidence: {explanation['confidence']:.1%}")
+    
+    # Demonstrate practice generation
+    print("\n📝 Practice Agent - Exercise Generation")
+    print("-" * 40)
+    
+    practice = await system.process_user_interaction(
+        session_id,
+        "practice_requested",
+        {
+            "lesson_content": lesson.content,
+            "difficulty": "beginner",
+            "num_questions": 3,
+            "question_types": ["multiple_choice", "short_answer"]
+        }
+    )
+    
+    print("📚 Practice exercises generated:")
+    print(f"   - Questions: {practice['question_count']}")
+    print(f"   - Difficulty: {practice['difficulty']}")
+    print(f"   - Estimated time: {practice['estimated_time']} minutes")
+    
+    # Demonstrate assessment creation
+    print("\n📊 Assessment System - Quiz Creation")
+    print("-" * 40)
+    
+    assessment = await system.process_user_interaction(
+        session_id,
+        "assessment_requested",
+        {
+            "lesson_id": lesson.lesson_id,
+            "difficulty": "beginner",
+            "num_questions": 5,
+            "question_types": ["multiple_choice", "short_answer"]
+        }
+    )
+    
+    print("📋 Assessment created:")
+    print(f"   - Assessment ID: {assessment['assessment_id']}")
+    print(f"   - Questions: {len(assessment['questions'])}")
+    print(f"   - Time limit: {assessment['time_limit']} minutes")
+    print(f"   - Passing score: {assessment['passing_score']:.0%}")
+    
+    # Demonstrate question answering
+    print("\n❓ Question Answering Simulation")
+    print("-" * 40)
+    
+    # Simulate answering a question
+    question_result = await system.process_user_interaction(
+        session_id,
+        "question_answered",
+        {
+            "question_id": "q_001",
+            "answer": "Python is an interpreted language",
+            "correct_answer": "Python is an interpreted language",
+            "concept": "Python characteristics",
+            "time_taken": 45
+        }
+    )
+    
+    print("✅ Question answered:")
+    print(f"   - Score: {question_result['evaluation']['score']:.1f}%")
+    print(f"   - Correct: {question_result['evaluation']['correct_count']}/{question_result['evaluation']['total_questions']}")
+    print(f"   - Passed: {'Yes' if question_result['evaluation']['passed'] else 'No'}")
+    
+    # Demonstrate progress tracking
+    print("\n🏆 Motivation Agent - Progress Tracking")
+    print("-" * 40)
+    
+    progress = await system.process_user_interaction(
+        session_id,
+        "progress_check",
+        {
+            "concept": "Python basics"
+        }
+    )
+    
+    print("📈 Progress analysis:")
+    analysis = progress["progress_analysis"]
+    print(f"   - Lessons completed: {analysis.get('total_lessons_completed', 0)}")
+    print(f"   - Average score: {analysis.get('average_score', 0):.1f}%")
+    print(f"   - Current difficulty: {analysis.get('current_difficulty', 'medium')}")
+    print(f"   - Learning trend: {analysis.get('trend', 'stable')}")
+    print(f"   - Study streak: {analysis.get('streak_days', 0)} days")
+    
+    # Demonstrate learning curve analysis
+    print("\n📊 Learning Curve Analysis")
+    print("-" * 40)
+    
+    learning_curve = progress["learning_curve"]
+    print(f"   - Status: {learning_curve.get('status', 'no_data')}")
+    print(f"   - Trend: {learning_curve.get('trend', 'improving')}")
+    print(f"   - Confidence: {learning_curve.get('confidence', 0):.1%}")
+    print(f"   - Current difficulty: {learning_curve.get('current_difficulty', 'medium')}")
+    print(f"   - Recommended difficulty: {learning_curve.get('recommended_difficulty', 'medium')}")
+    
+    # Demonstrate MDP recommendations
+    print("\n🎯 MDP System - Personalized Recommendations")
+    print("-" * 40)
+    
+    mdp_recommendations = progress["mdp_recommendations"]
+    if mdp_recommendations:
+        for i, rec in enumerate(mdp_recommendations, 1):
+            print(f"   {i}. {rec['action'].title()} lesson")
+            print(f"      - Difficulty: {rec['difficulty']}")
+            print(f"      - Duration: {rec['duration']} minutes")
+            print(f"      - Expected outcome: {rec['expected_outcome']}")
+    
+    # Demonstrate gap analysis
+    print("\n🔍 Gap Analysis - Learning Gaps")
+    print("-" * 40)
+    
+    # Simulate gap analysis
+    gap_analysis = await system.gap_analysis_system.analyze_responses(
+        ["I don't understand Python syntax", "Variables are confusing"],
+        ["Python syntax is clear and readable", "Variables store data values"],
+        "Python basics",
+        user_id,
+        session_id
+    )
+    
+    print(f"   - Misconceptions identified: {len(gap_analysis.misconceptions)}")
+    print(f"   - Learning gaps found: {len(gap_analysis.learning_gaps)}")
+    print(f"   - Analysis confidence: {gap_analysis.overall_confidence:.1%}")
+    print(f"   - Recommendations: {len(gap_analysis.recommendations)}")
+    
+    # Demonstrate knowledge gap filling
+    print("\n🧩 Knowledge Gap Filler - Remediation")
+    print("-" * 40)
+    
+    gap_recommendations = await system.knowledge_gap_filler.get_gap_filling_recommendations(
+        user_id, "Python basics"
+    )
+    
+    print(f"   - Status: {gap_recommendations['status']}")
+    print(f"   - Message: {gap_recommendations['message']}")
+    print(f"   - Recommendations: {len(gap_recommendations['recommendations'])}")
+    
+    # End session and show summary
+    print("\n📋 Session Summary")
+    print("-" * 40)
+    
+    summary = await system.end_learning_session(session_id)
+    
+    print("✅ Learning session completed:")
+    print(f"   - Session ID: {summary['session_id']}")
+    print(f"   - User ID: {summary['user_id']}")
+    print(f"   - Duration: {summary['duration_minutes']} minutes")
+    print(f"   - Lessons completed: {summary['lessons_completed']}")
+    print(f"   - Assessments taken: {summary['assessments_taken']}")
+    print(f"   - Engagement score: {summary['engagement_score']:.1%}")
+    print(f"   - Difficulty adjustments: {len(summary['difficulty_adjustments'])}")
+    print(f"   - Recommendations: {len(summary['recommendations'])}")
+    
+    # Show system status
+    print("\n🔧 System Status")
+    print("-" * 40)
+    
+    status = system.get_system_status()
+    print("📊 System metrics:")
+    print(f"   - Active sessions: {status['active_sessions']}")
+    print(f"   - Total users: {status['total_users']}")
+    print(f"   - Total lessons: {status['total_lessons']}")
+    print(f"   - Total learning paths: {status['total_learning_paths']}")
+    
+    print("🔧 Component status:")
+    for component, status in status['components_status'].items():
+        print(f"   - {component}: {status}")
+    
+    print("\n🎉 Demo completed successfully!")
+    print("=" * 50)
+
+async def demo_learning_path_creation():
+    """Demonstrate learning path creation"""
+    
+    print("\n🛤️ Learning Path Creation Demo")
+    print("=" * 50)
+    
+    # Initialize system
+    config = SystemConfig(
+        llm_provider="google",
+        llm_api_key="demo-key",
+        llm_model="gemini-pro"
+    )
+    system = MultiAgentTutoringSystem(config)
+    
+    # Create learning path
+    path_id = await system.create_learning_path(
+        "demo_user_002",
+        ["Learn Python Programming", "Build a Web Application", "Master Data Science"],
+        "8 weeks",
+        {
+            "available_time": "2 hours per day",
+            "learning_style": "practical",
+            "current_level": "beginner"
+        }
+    )
+    
+    print(f"✅ Learning path created: {path_id}")
+    
+    # Get path details
+    learning_path = system.learning_paths[path_id]
+    print(f"📋 Path details:")
+    print(f"   - Title: {learning_path.title}")
+    print(f"   - Description: {learning_path.description[:100]}...")
+    print(f"   - Estimated duration: {learning_path.estimated_duration} minutes")
+    print(f"   - Milestones: {len(learning_path.milestones)}")
+    print(f"   - Status: {learning_path.status}")
+    
+    print("🎯 Learning path creation completed!")
+
+async def demo_advanced_features():
+    """Demonstrate advanced system features"""
+    
+    print("\n🚀 Advanced Features Demo")
+    print("=" * 50)
+    
+    # Initialize system
+    config = SystemConfig(
+        llm_provider="google",
+        llm_api_key="demo-key",
+        llm_model="gemini-pro"
+    )
+    system = MultiAgentTutoringSystem(config)
+    
+    # Demonstrate concurrent sessions
+    print("🔄 Concurrent Sessions Demo")
+    print("-" * 30)
+    
+    # Create multiple sessions
+    tasks = []
+    for i in range(3):
+        task = system.start_learning_session(f"user_{i:03d}", "python_basics_001")
+        tasks.append(task)
+    
+    session_ids = await asyncio.gather(*tasks)
+    print(f"✅ Created {len(session_ids)} concurrent sessions")
+    
+    # Process interactions concurrently
+    interaction_tasks = []
+    for session_id in session_ids:
+        task = system.process_user_interaction(
+            session_id,
+            "concept_explanation_requested",
+            {
+                "concept": f"Python concept {session_id[-3:]}",
+                "difficulty": "beginner"
+            }
+        )
+        interaction_tasks.append(task)
+    
+    results = await asyncio.gather(*interaction_tasks)
+    print(f"✅ Processed {len(results)} interactions concurrently")
+    
+    # End all sessions
+    for session_id in session_ids:
+        await system.end_learning_session(session_id)
+    
+    print("🎉 Advanced features demo completed!")
+
+async def main():
+    """Run all demos"""
+    
+    try:
+        # Run basic functionality demo
+        await demo_basic_functionality()
+        
+        # Run learning path creation demo
+        await demo_learning_path_creation()
+        
+        # Run advanced features demo
+        await demo_advanced_features()
+        
+        print("\n🎊 All demos completed successfully!")
+        print("The Multi-Agent AI Tutoring System is ready for use!")
+        
+    except Exception as e:
+        print(f"❌ Demo failed with error: {e}")
+        print("Please check your configuration and try again.")
+
+if __name__ == "__main__":
+    print("🎓 Multi-Agent AI Tutoring System Demo")
+    print("=====================================")
+    print("This demo showcases the key features of the adaptive learning system.")
+    print("Note: This is a demonstration using mock data and responses.")
+    print("In production, you would need valid API keys for LLM services.")
+    print()
+    
+    asyncio.run(main())
